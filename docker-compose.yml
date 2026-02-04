@@ -1,0 +1,48 @@
+services:
+  # Kontener z MongoDB
+  mongodb:
+    image: mongo:latest
+    container_name: game_quiz_db
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+    volumes:
+      - mongo_data:/data/db
+
+  # Kontener z Redisem
+  redis:
+    image: redis:alpine
+    container_name: game_quiz_cache
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      # TWÓJ SERWER HTTP (Backend API)
+  backend:
+    build: ./backend        # Docker sam zbuduje obraz z Twoim kodem
+    container_name: game_quiz_api
+    env_file:
+      - data.env  # <--- TA LINIA JEST KLUCZOWA
+    ports:
+      - "5000:5000"         # Serwer będzie dostępny pod localhost:5000
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      - MONGO_URL=mongodb://admin:password123@mongodb:27017
+      - REDIS_URL=redis://redis:6379
+
+  # OPCJONALNIE: Frontend (jeśli robisz osobną aplikację np. w React)
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+
+volumes:
+  mongo_data:
+  redis_data:
+  
