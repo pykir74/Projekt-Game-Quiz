@@ -1,91 +1,132 @@
-<div id="quiz">
-    <div style="display: flex; gap: 20px;">
-        <div id="p1" onclick="vote(gameA.id)" style="cursor:pointer; border:1px solid #ccc; padding:10px;">
-            <img id="imgA" src="" width="200">
-            <h2 id="nameA"></h2>
-        </div>
-        <h1> VS </h1>
-        <div id="p2" onclick="vote(gameB.id)" style="cursor:pointer; border:1px solid #ccc; padding:10px;">
-            <img id="imgB" src="" width="200">
-            <h2 id="nameB"></h2>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="quiz">
+        <div style="display: flex; gap: 20px;">
+            <div id="p1" onclick="vote(gameA.id)" style="cursor:pointer; border:1px solid #ccc; padding:10px;">
+                <img id="imgA" src="" width="200">
+                <h2 id="nameA"></h2>
+            </div>
+            <h1> VS </h1>
+            <div id="p2" onclick="vote(gameB.id)" style="cursor:pointer; border:1px solid #ccc; padding:10px;">
+                <img id="imgB" src="" width="200">
+                <h2 id="nameB"></h2>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    let gameA, gameB;
+    <script>
+        let gameA, gameB;
 
-    async function loadRound() {
-        try {
-            const res = await fetch('http://localhost:5000/api/quiz/next-round');
-            const data = await res.json();
-
-            if (data.error === "NEED_INIT") {
-                console.log("Brak gier, inicjalizuję...");
-                await restartQuiz();
-                return;
-            }
-
-            if (data.winner) {
-                renderWinner(data.winner);
-                return;
-            }
-
-            // Jeśli nie ma gier i nie ma zwycięzcy, a player1 jest pusty
-            if (!data.player1) {
-                await restartQuiz();
-                return;
-            }
-
-            gameA = data.player1;
-            gameB = data.player2;
-            document.getElementById('nameA').innerText = gameA.name;
-            document.getElementById('imgA').src = gameA.cover;
-            document.getElementById('nameB').innerText = gameB.name;
-            document.getElementById('imgB').src = gameB.cover;
-
-        } catch (err) {
-            console.error("Błąd ładowania rundy:", err);
-            document.body.innerHTML = "<h1>Serwer nie odpowiada. Sprawdź czy backend działa!</h1>";
+        function resetQuizLayout() {
+            document.getElementById('quiz').innerHTML = `
+        <div style="display: flex; gap: 20px; align-items: center; justify-content: center;">
+            <div id="p1" onclick="vote(gameA.id)" style="cursor:pointer; border:1px solid #ccc; padding:10px; text-align:center;">
+                <img id="imgA" src="" width="200" style="display:block; margin: 0 auto;">
+                <h2 id="nameA"></h2>
+            </div>
+            <h1> VS </h1>
+            <div id="p2" onclick="vote(gameB.id)" style="cursor:pointer; border:1px solid #ccc; padding:10px; text-align:center;">
+                <img id="imgB" src="" width="200" style="display:block; margin: 0 auto;">
+                <h2 id="nameB"></h2>
+            </div>
+        </div>
+    `;
         }
-    }
 
-    async function vote(id) {
-        await fetch('http://localhost:5000/api/quiz/vote', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ winnerId: id })
-        });
-        loadRound();
-    }
+        async function loadRound() {
+            try {
+                const res = await fetch('http://localhost:5000/api/quiz/next-round');
+                const data = await res.json();
 
-    async function restartQuiz() {
-        const res = await fetch('http://localhost:5000/api/quiz/init');
-        const data = await res.json();
-        if (data.message) {
+                if (data.error === "NEED_INIT") {
+                    await restartQuiz();
+                    return;
+                }
+
+                if (data.winner) {
+                    renderWinner(data.winner);
+                    return;
+                }
+
+                // SPRAWDZENIE: Jeśli brakuje elementów (bo np. był ekran zwycięzcy), przywróć je
+                if (!document.getElementById('nameA')) {
+                    resetQuizLayout();
+                }
+
+                gameA = data.player1;
+                gameB = data.player2;
+
+                document.getElementById('nameA').innerText = gameA.name;
+                document.getElementById('imgA').src = gameA.cover;
+                document.getElementById('nameB').innerText = gameB.name;
+                document.getElementById('imgB').src = gameB.cover;
+
+            } catch (err) {
+                console.error("Błąd ładowania rundy:", err);
+                document.body.innerHTML = "<h1>Serwer nie odpowiada. Sprawdź czy backend działa!</h1>";
+            }
+        }
+
+        async function vote(id) {
+            await fetch('http://localhost:5000/api/quiz/vote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ winnerId: id })
+            });
             loadRound();
         }
-    }
 
-    function renderWinner(winner) {
-        document.getElementById('quiz').innerHTML = `
-            <div style="text-align: center;">
-                <h1>🏆 Zwycięzca: ${winner.name}!</h1>
-                <img src="${winner.cover}" width="300"><br><br>
-                <button onclick="restartQuiz()" style="padding: 10px 20px; cursor: pointer;">Zagraj jeszcze raz</button>
-            </div>
-        `;
-        saveWinnerToStats(winner);
-    }
+        async function restartQuiz() {
+            try {
+                // Musi być pełny adres do backendu (port 5000)
+                const res = await fetch('http://localhost:5000/api/quiz/init');
+                const data = await res.json();
+                if (data.message) {
+                    // Zamiast reload, lepiej po prostu załadować nową rundę
+                    loadRound();
+                }
+            } catch (err) {
+                console.error("Błąd podczas restartu:", err);
+                alert("Nie udało się zrestartować quizu. Sprawdź konsolę.");
+            }
+        }
 
-    async function saveWinnerToStats(winner) {
-        await fetch('http://localhost:5000/api/quiz/final-winner', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: winner.id, name: winner.name })
-        });
-    }
+        function renderWinner(winner) {
+            // Czyścimy zawartość, żeby stare przyciski nie przeszkadzały
+            const quizDiv = document.getElementById('quiz');
+            quizDiv.innerHTML = `
+        <div style="text-align: center;">
+            <h1>🏆 Zwycięzca: ${winner.name}!</h1>
+            <img src="${winner.cover}" width="300"><br><br>
+            <button id="restartBtn" style="padding: 10px 20px; cursor: pointer;">Zagraj jeszcze raz</button>
+        </div>
+    `;
 
-    // KLUCZOWE: Uruchomienie przy starcie!
-    loadRound();
-</script>
+            // Podpinamy event po wyrenderowaniu
+            document.getElementById('restartBtn').onclick = restartQuiz;
+
+            saveWinnerToStats(winner);
+        }
+
+        async function saveWinnerToStats(winner) {
+            await fetch('http://localhost:5000/api/quiz/final-winner', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: winner.id, name: winner.name })
+            });
+        }
+
+        // KLUCZOWE: Uruchomienie przy starcie!
+        loadRound();
+    </script>
+</body>
+
+</html>
