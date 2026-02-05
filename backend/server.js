@@ -36,7 +36,7 @@ async function getAccessToken() {
 }
 
 async function fetchGames() {
-    console.log("chuj");
+    console.log("Reset");
     try {
         const token = await getAccessToken();
         const response = await axios({
@@ -47,7 +47,7 @@ async function fetchGames() {
                 'Authorization': `Bearer ${token}`,
             },
             // Pobieramy: nazwę, url okładki i ocenę. Warunek: musi mieć okładkę i min. 50 ocen.
-            data: "fields name, cover.url, total_rating; where cover != null & total_rating_count > 50; sort total_rating desc; limit 32;"
+            data: "fields name, cover.url, total_rating; where cover != null & total_rating_count < 50; limit 32;"
         });
 
         // Mapujemy dane, żeby naprawić URL okładek (z miniatur na HD)
