@@ -1,0 +1,133 @@
+body {
+    /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+     */
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 200;
+    font-style: normal;
+    background-color: #8A8D6E;
+    color: white;
+    margin: 0;
+    min-height: 100vh;
+    /* Cała wysokość okna */
+}
+
+.header {
+    width: 100%;
+    background-color: #34352b;
+    color: white;
+    margin-top: 0;
+    padding: .5em;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.round {
+    text-align: center;
+}
+
+.round h3 {
+    color: rgb(255, 217, 0);
+    text-shadow: #000;
+}
+
+.quiz-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #8A8D6E;
+    padding: 30px;
+    border-radius: 10px;
+}
+
+.game-chooser {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    justify-content: center;
+}
+
+.card {
+    background-color: #9A9CA8;
+    border-radius: 15px;
+    padding: 20px;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    box-shadow: 0 4px 15px #000000;
+
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.card:hover {
+    transform: scale(1.10);
+    background-color: #666c8f;
+    border: 1px solid #494949;
+}
+
+.card img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.card h2 {
+    font-size: 1.5rem;
+    margin: 0;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.vs {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #FF6868;
+    text-shadow: 2px 2px 0px #000;
+}
+
+.winner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+}
+
+.winner img {
+    border: 5px solid gold;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+
+}
+
+button {
+    background-color: #ff4757;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+button:hover {
+    background-color: #ff6b7a;
+    transform: scale(1.05);
+}
+
+.card p {
+    font-size: 0.8em;
+    max-height: 80px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 5px;
+    border-radius: 5px;
+    margin-top: 10px;
+}

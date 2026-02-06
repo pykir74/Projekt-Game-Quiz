@@ -11,13 +11,11 @@ app.use(express.json());
 
 // --- KONFIGURACJA POŁĄCZEŃ ---
 
-// MongoDB (używamy nazwy 'mongodb' z docker-compose)
 const mongoUrl = process.env.MONGO_URL || 'mongodb://admin:password123@mongodb:27017/gamequiz?authSource=admin';
 mongoose.connect(mongoUrl)
     .then(() => console.log('Połączono z MongoDB'))
     .catch(err => console.error('Błąd MongoDB:', err));
 
-// Redis (używamy nazwy 'redis' z docker-compose)
 const redisClient = redis.createClient({
     url: process.env.REDIS_URL || 'redis://redis:6379'
 });
@@ -47,13 +45,14 @@ async function fetchGames() {
                 'Authorization': `Bearer ${token}`,
             },
             // Pobieramy: nazwę, url okładki i ocenę. Warunek: musi mieć okładkę i min. 50 ocen.
-            data: "fields name, cover.url, total_rating; where cover != null & total_rating_count < 50; limit 32;"
+            data: "fields name, cover.url, summary, total_rating; where cover != null & total_rating_count < 50; limit 32;"
         });
 
         // Mapujemy dane, żeby naprawić URL okładek (z miniatur na HD)
         return response.data.map(game => ({
             id: game.id,
             name: game.name,
+            summary: game.summary || "Brak opisu.",
             cover: game.cover.url.replace('t_thumb', 't_720p').replace('//', 'https://')
         }));
     } catch (err) {
@@ -71,6 +70,7 @@ async function fetchGames() {
 
 // Endpoint do inicjalizacji quizu (pobiera gry i wrzuca do Redisa)
 app.get('/api/quiz/init', async (req, res) => {
+    await redisClient.flushAll(); // Czyści Redisa przed załadowaniem nowych gier
     const games = await fetchGames();
     if (games.length > 0) {
         // Tasujemy gry (żeby quiz nie był zawsze taki sam)
