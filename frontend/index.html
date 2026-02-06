@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Picker</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <!-- Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,27 +17,44 @@
 </head>
 
 <body>
-    <div class="header">
+
+    <div id="main-menu-screen">
         <h1>Game Picker</h1>
-        <p>Choose which one of those games would u rather prefer to play</p>
-    </div>
-    <div id="quiz">
-        <div class="round">
-            <h3 id="round"></h3>
-            <p id="maxvotes"></p>
+        <div class="main-menu">
+            <h2>Instructions</h2>
+            <li>Choose which game you would rather play by clicking on its card.</li>
+            <li>After each vote, the next pair of games will be displayed.</li>
+            <li>After 16 rounds, the ultimate winner will be revealed.</li>
+
         </div>
-        <div class="quiz-wrap">
-            <div class="game-chooser">
-                <div id="p1" class="card" onclick="vote(gameA.id)">
-                    <img id="imgA" src="">
-                    <h2 id="nameA"></h2>
-                    <p id="summaryA"></p>
-                </div>
-                <h1 class="vs"> VS </h1>
-                <div id="p2" class="card" onclick="vote(gameB.id)">
-                    <img id="imgB" src="">
-                    <h2 id="nameB"></h2>
-                    <p id="summaryB"></p>
+        <button class="start-quiz-btn" onclick="startApp()">Start Quiz</button>
+
+    </div>
+
+    <div id="main-inteface" style="display: none;">
+        <div class="header">
+            <h1>Game Picker</h1>
+            <p>Choose which one of those games would u rather prefer to play</p>
+        </div>
+
+        <div id="quiz">
+            <div class="round">
+                <h3 id="round"></h3>
+                <p id="maxvotes"></p>
+            </div>
+            <div class="quiz-wrap">
+                <div class="game-chooser">
+                    <div id="p1" class="card" onclick="vote(gameA.id)">
+                        <img id="imgA" src="">
+                        <h2 id="nameA"></h2>
+                        <p id="summaryA"></p>
+                    </div>
+                    <h1 class="vs"> VS </h1>
+                    <div id="p2" class="card" onclick="vote(gameB.id)">
+                        <img id="imgB" src="">
+                        <h2 id="nameB"></h2>
+                        <p id="summaryB"></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -49,6 +67,11 @@
         let votes = 0;
         let s_round = "1/32 - PIERWSZA RUNDA";
         let maxVotesThisRound = 16;
+
+        function showMainInterface() {
+            document.getElementById('main-menu-screen').style.display = 'none';
+            document.getElementById('main-inteface').style.display = 'block';
+        }
 
         function checkIfNextRound() {
             if (votes == (startingGames / Math.pow(2, roundCounter))) {
@@ -78,8 +101,10 @@
 
         function resetQuizLayout() {
             document.getElementById('quiz').innerHTML = `
+            <div class="round">
             <h3 id="round"></h3>
             <p id="maxvotes"></p>
+            </div>
                 <div class="quiz-wrap">
                     <div class="game-chooser">
                         <div id="p1" class="card" onclick="vote(gameA.id)">
@@ -154,7 +179,11 @@
                 const res = await fetch('http://localhost:5000/api/quiz/init');
                 const data = await res.json();
                 if (data.message) {
-                    // Zamiast reload, lepiej po prostu załadować nową rundę
+                    roundCounter = 1;
+                    votes = 0;
+                    maxVotesThisRound = 16;
+                    s_round = "1/32 - PIERWSZA RUNDA";
+
                     loadRound();
                 }
             } catch (err) {
@@ -175,9 +204,11 @@
     `;
 
             // Podpinamy event po wyrenderowaniu
-            document.getElementById('restartBtn').onclick = restartQuiz;
+            document.getElementById('restartBtn').onclick = restartQuiz();
 
             saveWinnerToStats(winner);
+
+            confettiCelebration();
         }
 
         async function saveWinnerToStats(winner) {
@@ -191,10 +222,20 @@
         async function startApp() {
             console.log("Odświeżono stronę - resetuję Redis...");
             await fetch('http://localhost:5000/api/quiz/init'); // To wyczyści Redisa i pobierze gry
+            showMainInterface();
             loadRound(); // Dopiero teraz ładujemy pierwszą rundę
+
         }
 
-        startApp();
+        function confettiCelebration() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+
+        //startApp();
     </script>
 </body>
 
