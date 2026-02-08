@@ -45,10 +45,26 @@
     z-index: 10;
     transition: background 0.2s;
     user-select: none;
+
+    /* DODAJ TE LINIE: */
+    width: 40px;
+    /* Stała szerokość */
+    height: 60px;
+    /* Stała wysokość */
+    display: flex;
+    /* Używamy flexa do centrowania znaku wewnątrz */
+    align-items: center;
+    /* Centrowanie w pionie */
+    justify-content: center;
+    /* Centrowanie w poziomie */
+    line-height: 1;
+    /* Usuwa domyślne marginesy tekstu */
 }
 
 .gallery-nav:hover {
     background-color: rgba(0, 0, 0, 0.9);
+    /* Usuwamy jakiekolwiek przesunięcia, jeśli jakieś były */
+    transform: translateY(-50%);
 }
 
 .prev-btn {
