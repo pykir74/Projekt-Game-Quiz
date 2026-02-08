@@ -1,6 +1,6 @@
 button {
     margin: auto;
-    background-color: white;
+    background-color: #D5BDDD;
     color: black;
     border: none;
     padding: 10px 20px;
@@ -11,6 +11,6 @@ button {
 }
 
 button:hover {
-    background-color: #bdbdbd;
+    background-color: #C6A7D1;
     transform: scale(1.05);
 }

@@ -9,19 +9,19 @@ app.use(cors());
 app.use(express.json());
 
 
-// --- KONFIGURACJA POŁĄCZEŃ ---
+// Configuring connections
 
 const mongoUrl = process.env.MONGO_URL || 'mongodb://admin:password123@mongodb:27017/gamequiz?authSource=admin';
 mongoose.connect(mongoUrl)
-    .then(() => console.log('Połączono z MongoDB'))
-    .catch(err => console.error('Błąd MongoDB:', err));
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('Error while connecting to MongoDB:', err));
 
 const redisClient = redis.createClient({
     url: process.env.REDIS_URL || 'redis://redis:6379'
 });
 
-redisClient.on('error', (err) => console.error('Błąd Redisa:', err));
-redisClient.connect().then(() => console.log('Połączono z Redisem'));
+redisClient.on('error', (err) => console.error('Redis error:', err));
+redisClient.connect().then(() => console.log('Connected to Redis'));
 
 
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -44,18 +44,16 @@ async function fetchGames() {
                 'Client-ID': CLIENT_ID,
                 'Authorization': `Bearer ${token}`,
             },
-            // ZMIANA: Dodano .name przy platforms i .url przy screenshots oraz rating
             data: "fields name, cover.url, summary, first_release_date, platforms.name, rating, rating_count, screenshots.url; where cover != null & rating_count > 5; limit 32;"
         });
 
         console.log("Data fetched");
-        // Mapujemy nowe dane
+        // Mapping data
         return response.data.map(game => ({
             id: game.id,
             name: game.name,
             summary: game.summary || "No description.",
             cover: game.cover.url.replace('t_thumb', 't_720p').replace('//', 'https://'),
-            // Nowe pola:
             release_date: game.first_release_date ? new Date(game.first_release_date * 1000).getFullYear() : 'TBA',
             rating: game.rating ? Math.round(game.rating) : 'N/A',
             rating_count: game.rating_count || 0,
@@ -68,91 +66,56 @@ async function fetchGames() {
     }
 }
 
-// Endpoint do inicjalizacji quizu (pobiera gry i wrzuca do Redisa)
 app.get('/api/quiz/init', async (req, res) => {
-    await redisClient.flushAll(); // Czyści Redisa przed załadowaniem nowych gier
+    await redisClient.flushAll(); 
     const games = await fetchGames();
     if (games.length > 0) {
-        // Tasujemy gry (żeby quiz nie był zawsze taki sam)
+        // Shuffle the games before saving to Redis, so we get a different order each time
         const shuffled = games.sort(() => 0.5 - Math.random());
         await redisClient.setEx('games_list', 3600, JSON.stringify(shuffled));
-        res.json({ message: "Quiz zainicjalizowany!", count: shuffled.length });
+        res.json({ message: "Quiz initialized!", count: shuffled.length });
     } else {
-        res.status(500).json({ error: "Nie udało się pobrać gier" });
+        res.status(500).json({ error: "Could not fetch games" });
     }
 });
 
 
 
-// --- LOGIKA I ENDPOINTY ---
+// Logic and endpoints
 
 app.get('/', (req, res) => {
-    res.send('API działa! Serwer Node.js jest online.');
+    res.send('API is working! Node.js server is online.');
 });
 
-// Testowy endpoint do pobierania gier
-app.get('/api/games', async (req, res) => {
-    try {
-        // 1. Najpierw sprawdźmy w Redisie (Cache)
-        const cachedGames = await redisClient.get('games_list');
 
-        if (cachedGames) {
-            console.log('--- Pobieram dane z REDISA ---');
-            return res.json(JSON.parse(cachedGames));
-        }
-
-        // 2. Jeśli nie ma w Redisie, tutaj docelowo będzie fetch do IGDB
-        // Na razie zrobimy "dummy data" do testów
-        const dummyGames = [
-            { id: 1, name: "The Witcher 3", rating: 98 },
-            { id: 2, name: "Cyberpunk 2077", rating: 85 }
-        ];
-
-        console.log('--- Brak w Redisie, zapisuję nowe dane ---');
-
-        // Zapisujemy w Redisie na 60 sekund (EX: 60)
-        await redisClient.setEx('games_list', 60, JSON.stringify(dummyGames));
-
-        res.json(dummyGames);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Pomocnicza funkcja do losowania par
+// Function for getting random games
 app.get('/api/quiz/next-round', async (req, res) => {
     const cachedGames = await redisClient.get('games_list');
 
     if (!cachedGames) {
-        // Zwracamy status 200, ale z informacją o błędzie w JSONie
         return res.json({ error: "NEED_INIT" });
     }
 
     let games = JSON.parse(cachedGames);
 
-    // Jeśli została tylko jedna gra - mamy zwycięzcę!
     if (games.length === 1) {
         return res.json({ winner: games[0] });
     }
 
-    // Losujemy dwie gry do pojedynku
     const player1 = games[0];
     const player2 = games[1];
 
     res.json({ player1, player2, remaining: games.length });
 });
 
-// Endpoint do wysyłania wyniku (kto wygrał pojedynek)
+// Endpoint for winner selection
 app.post('/api/quiz/vote', async (req, res) => {
     const { winnerId } = req.body;
     const cachedGames = await redisClient.get('games_list');
     let games = JSON.parse(cachedGames);
 
-    // Usuwamy przegraną grę (tę, która NIE jest winnerId z aktualnej pary)
-    // To uproszczona logika: wyrzucamy pierwszą grę z listy, która nie wygrała
     const updatedGames = games.filter(g => g.id === winnerId || games.indexOf(g) > 1);
 
-    // Przesuwamy zwycięzcę na koniec kolejki, żeby zmierzył się z kimś innym później
     const winner = updatedGames.shift();
     updatedGames.push(winner);
 
@@ -160,7 +123,7 @@ app.post('/api/quiz/vote', async (req, res) => {
     res.json({ message: "Głos oddany!" });
 });
 
-// 1. Definicja Schematu MongoDB
+// MongoDB schema for game stats
 const statsSchema = new mongoose.Schema({
     gameId: Number,
     name: String,
@@ -168,11 +131,10 @@ const statsSchema = new mongoose.Schema({
 });
 const GameStats = mongoose.model('GameStats', statsSchema);
 
-// 2. Endpoint do zapisywania ostatecznego zwycięzcy
+// Endpoint for updating stats after quiz completion
 app.post('/api/quiz/final-winner', async (req, res) => {
     const { id, name } = req.body;
     try {
-        // Znajdź grę w bazie i zwiększ licznik wins o 1 (upsert tworzy rekord jeśli go nie ma)
         await GameStats.findOneAndUpdate(
             { gameId: id },
             { $inc: { wins: 1 }, name: name },
@@ -184,7 +146,7 @@ app.post('/api/quiz/final-winner', async (req, res) => {
     }
 });
 
-// 3. Endpoint do pobierania rankingu (na przyszłość)
+// Endpoint for fetching leaderboard
 app.get('/api/quiz/leaderboard', async (req, res) => {
     const topGames = await GameStats.find().sort({ wins: -1 }).limit(10);
     res.json(topGames);

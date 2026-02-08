@@ -19,7 +19,7 @@ export function resetLayout(s_round, votesInfo) {
 }
 
 function createCard(suffix) {
-    // suffix to 'A' lub 'B', ale ID karty ustawiamy na 'p1' i 'p2' dla spójności z main.js
+    // Changing id based on suffix to avoid conflicts between the two cards
     const cardId = suffix === 'A' ? '1' : '2';
     return `
         <div id="p${cardId}" class="card">
