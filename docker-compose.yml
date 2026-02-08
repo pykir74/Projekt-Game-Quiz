@@ -38,9 +38,12 @@ services:
 
   # OPCJONALNIE: Frontend (jeśli robisz osobną aplikację np. w React)
   frontend:
-    build: ./frontend
+    image: nginx:alpine # lub build: ./frontend
     ports:
       - "3000:80"
+    volumes:
+      # MAPOWANIE: [ścieżka na dysku]:[ścieżka w kontenerze]
+      - ./frontend:/usr/share/nginx/html
 
 volumes:
   mongo_data:

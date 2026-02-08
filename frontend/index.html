@@ -4,27 +4,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Picker</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./styles/style.css">
+
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="./script.js"></script>
+    <link rel="shortcut icon" href="./assets/dice.png" type="image/x-icon">
+    <link rel="stylesheet" href="./styles/ss_slider.css">
+    <link rel="stylesheet" href="./styles/card.css">
+    <title>Game Picker</title>
     <!-- Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Audiowide&family=Inter:ital,opsz,wght@0,14..32,200;1,14..32,200&family=Lexend:wght@100..900&family=Red+Hat+Text:ital,wght@0,300..700;1,300..700&family=Science+Gothic:wght@100..900&display=swap"
         rel="stylesheet">
-    <link rel="shortcut icon" href="./assets/dice.png" type="image/x-icon">
+
 </head>
 
 <body>
-
-    <div id="main-menu-screen">
+    <header>
         <h1>Game Picker</h1>
+        <p>Choose which one of those games would u rather prefer to play</p>
+    </header>
+
+    <div id="main-menu-screen" class="main-menu-screen">
         <div class="main-menu">
-            <h2>Instructions</h2>
-            <li>Choose which game you would rather play by clicking on its card.</li>
-            <li>After each vote, the next pair of games will be displayed.</li>
-            <li>After 16 rounds, the ultimate winner will be revealed.</li>
+            <h1>Can't decide which game to play next?</h1>
+            <h3>We can help you choose.</h3>
+            <h1>Instructions</h1>
+            <p>Choose which game you would rather play by clicking on its card.</p>
+            <p>After each vote, the next pair of games will be displayed.</p>
+            <p>After 16 rounds, the ultimate winner will be revealed.</p>
 
         </div>
         <button class="start-quiz-btn" onclick="startApp()">Start Quiz</button>
@@ -32,10 +42,6 @@
     </div>
 
     <div id="main-inteface" style="display: none;">
-        <div class="header">
-            <h1>Game Picker</h1>
-            <p>Choose which one of those games would u rather prefer to play</p>
-        </div>
 
         <div id="quiz">
             <div class="round">
@@ -47,196 +53,35 @@
                     <div id="p1" class="card" onclick="vote(gameA.id)">
                         <img id="imgA" src="">
                         <h2 id="nameA"></h2>
+                        <div class="game-info">
+                            <span id="dateA" class="info-badge"></span>
+                            <span id="ratingA" class="info-badge"></span>
+                        </div>
+                        <p id="platformsA" class="platforms-text"></p>
+
                         <p id="summaryA"></p>
+
+                        <div id="screensA" class="screenshots-container"></div>
                     </div>
                     <h1 class="vs"> VS </h1>
                     <div id="p2" class="card" onclick="vote(gameB.id)">
                         <img id="imgB" src="">
                         <h2 id="nameB"></h2>
+                        <div class="game-info">
+                            <span id="dateB" class="info-badge"></span>
+                            <span id="ratingB" class="info-badge"></span>
+                        </div>
+                        <p id="platformsB" class="platforms-text"></p>
+
                         <p id="summaryB"></p>
+
+                        <div id="screensB" class="screenshots-container"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        let gameA, gameB;
-        let startingGames = 32;
-        let roundCounter = 1;
-        let votes = 0;
-        let s_round = "1/32 - PIERWSZA RUNDA";
-        let maxVotesThisRound = 16;
-
-        function showMainInterface() {
-            document.getElementById('main-menu-screen').style.display = 'none';
-            document.getElementById('main-inteface').style.display = 'block';
-        }
-
-        function checkIfNextRound() {
-            if (votes == (startingGames / Math.pow(2, roundCounter))) {
-                votes = 0;
-                roundCounter += 1;
-                switch (roundCounter) {
-                    case 2:
-                        s_round = "1/16 - DRUGA RUNDA";
-                        maxVotesThisRound = 8;
-                        break;
-                    case 3:
-                        s_round = "1/8 - ĆWIERĆFINAŁY";
-                        maxVotesThisRound = 4;
-                        break;
-                    case 4:
-                        s_round = "1/4 - PÓŁFINAŁY";
-                        maxVotesThisRound = 2;
-                        break;
-                    case 5:
-                        s_round = "1/2 - FINAŁ";
-                        maxVotesThisRound = 1;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        function resetQuizLayout() {
-            document.getElementById('quiz').innerHTML = `
-            <div class="round">
-            <h3 id="round"></h3>
-            <p id="maxvotes"></p>
-            </div>
-                <div class="quiz-wrap">
-                    <div class="game-chooser">
-                        <div id="p1" class="card" onclick="vote(gameA.id)">
-                            <img id="imgA" src="">
-                            <h2 id="nameA"></h2>
-                            <p id="summaryA"></p>
-                        </div>
-                        <h1 class="vs"> VS </h1>
-                        <div id="p2" class="card" onclick="vote(gameB.id)">
-                            <img id="imgB" src="">
-                            <h2 id="nameB"></h2>
-                            <p id="summaryB"></p>
-                        </div>
-                    </div>
-                </div>
-                `;
-        }
-
-        async function loadRound() {
-            try {
-                const res = await fetch('http://localhost:5000/api/quiz/next-round');
-                const data = await res.json();
-
-                if (data.error === "NEED_INIT") {
-                    await restartQuiz();
-                    return;
-                }
-
-                if (data.winner) {
-                    renderWinner(data.winner);
-                    return;
-                }
-
-                // SPRAWDZENIE: Jeśli brakuje elementów (bo np. był ekran zwycięzcy), przywróć je
-                if (!document.getElementById('nameA')) {
-                    resetQuizLayout();
-                }
-
-                checkIfNextRound();
-
-                gameA = data.player1;
-                gameB = data.player2;
-
-                document.getElementById('round').innerText = s_round;
-                document.getElementById('maxvotes').innerText = `${votes + 1}/${maxVotesThisRound}`;
-                document.getElementById('nameA').innerText = gameA.name;
-                document.getElementById('imgA').src = gameA.cover;
-                document.getElementById('summaryA').innerText = gameA.summary;
-                document.getElementById('nameB').innerText = gameB.name;
-                document.getElementById('imgB').src = gameB.cover;
-                document.getElementById('summaryB').innerText = gameB.summary;
-
-            } catch (err) {
-                console.error("Błąd ładowania rundy:", err);
-                document.body.innerHTML = "<h1>Serwer nie odpowiada. Sprawdź czy backend działa!</h1>";
-            }
-        }
-
-        async function vote(id) {
-            await fetch('http://localhost:5000/api/quiz/vote', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ winnerId: id })
-            });
-            votes += 1;
-            loadRound();
-        }
-
-        async function restartQuiz() {
-            try {
-                // Musi być pełny adres do backendu (port 5000)
-                const res = await fetch('http://localhost:5000/api/quiz/init');
-                const data = await res.json();
-                if (data.message) {
-                    roundCounter = 1;
-                    votes = 0;
-                    maxVotesThisRound = 16;
-                    s_round = "1/32 - PIERWSZA RUNDA";
-
-                    loadRound();
-                }
-            } catch (err) {
-                console.error("Błąd podczas restartu:", err);
-                alert("Nie udało się zrestartować quizu. Sprawdź konsolę.");
-            }
-        }
-
-        function renderWinner(winner) {
-            // Czyścimy zawartość, żeby stare przyciski nie przeszkadzały
-            const quizDiv = document.getElementById('quiz');
-            quizDiv.innerHTML = `
-                <div class="winner">
-                    <h1>Zwycięzca: ${winner.name}!</h1>
-                    <img src="${winner.cover}" width="300" align="center"><br><br>
-                    <button id="restartBtn" onclick="restartQuiz()">Zagraj jeszcze raz</button>
-                </div>
-    `;
-
-            // Podpinamy event po wyrenderowaniu
-            document.getElementById('restartBtn').onclick = restartQuiz();
-
-            saveWinnerToStats(winner);
-
-            confettiCelebration();
-        }
-
-        async function saveWinnerToStats(winner) {
-            await fetch('http://localhost:5000/api/quiz/final-winner', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: winner.id, name: winner.name })
-            });
-        }
-
-        async function startApp() {
-            console.log("Odświeżono stronę - resetuję Redis...");
-            await fetch('http://localhost:5000/api/quiz/init'); // To wyczyści Redisa i pobierze gry
-            showMainInterface();
-            loadRound(); // Dopiero teraz ładujemy pierwszą rundę
-
-        }
-
-        function confettiCelebration() {
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 }
-            });
-        }
-
-        //startApp();
-    </script>
 </body>
 
 </html>

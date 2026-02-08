@@ -34,7 +34,7 @@ async function getAccessToken() {
 }
 
 async function fetchGames() {
-    console.log("Reset");
+    console.log("Fetching games");
     try {
         const token = await getAccessToken();
         const response = await axios({
@@ -44,26 +44,26 @@ async function fetchGames() {
                 'Client-ID': CLIENT_ID,
                 'Authorization': `Bearer ${token}`,
             },
-            // Pobieramy: nazwę, url okładki i ocenę. Warunek: musi mieć okładkę i min. 50 ocen.
-            data: "fields name, cover.url, summary, total_rating; where cover != null & total_rating_count < 50; limit 32;"
+            // ZMIANA: Dodano .name przy platforms i .url przy screenshots oraz rating
+            data: "fields name, cover.url, summary, first_release_date, platforms.name, rating, rating_count, screenshots.url; where cover != null & rating_count > 5; limit 32;"
         });
 
-        // Mapujemy dane, żeby naprawić URL okładek (z miniatur na HD)
+        console.log("Data fetched");
+        // Mapujemy nowe dane
         return response.data.map(game => ({
             id: game.id,
             name: game.name,
-            summary: game.summary || "Brak opisu.",
-            cover: game.cover.url.replace('t_thumb', 't_720p').replace('//', 'https://')
+            summary: game.summary || "No description.",
+            cover: game.cover.url.replace('t_thumb', 't_720p').replace('//', 'https://'),
+            // Nowe pola:
+            release_date: game.first_release_date ? new Date(game.first_release_date * 1000).getFullYear() : 'TBA',
+            rating: game.rating ? Math.round(game.rating) : 'N/A',
+            rating_count: game.rating_count || 0,
+            platforms: game.platforms ? game.platforms.map(p => p.name).join(', ') : 'PC',
+            screenshots: game.screenshots ? game.screenshots.slice(0, 3).map(s => s.url.replace('t_thumb', 't_720p').replace('//', 'https://')) : []
         }));
     } catch (err) {
-        // To wypisze konkretny błąd w terminalu Dockera
-        console.error("LOGI BŁĘDU:");
-        if (err.response) {
-            console.error("Status:", err.response.status);
-            console.error("Dane:", err.response.data);
-        } else {
-            console.error("Komunikat:", err.message);
-        }
+        console.error("IGDB Error:", err.message);
         return [];
     }
 }
