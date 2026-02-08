@@ -1,6 +1,6 @@
 .card {
     overflow: hidden;
-    background-color: #ffffff;
+    background-color: #D5BDDD;
     border-radius: 15px;
     padding: 20px;
     color: black;
@@ -17,7 +17,7 @@
 
 .card:hover {
     transform: scale(1.02);
-    background-color: #c9c9c9;
+    background-color: #C6A7D1;
     border: 1px solid #494949;
 }
 

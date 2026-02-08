@@ -3,9 +3,8 @@
     position: relative;
     width: 100%;
     height: 200px;
-    /* Stała wysokość galerii */
-    background-color: #000;
-    /* Czarne tło pod zdjęciami */
+    padding-top: 10px;
+    background-color: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
