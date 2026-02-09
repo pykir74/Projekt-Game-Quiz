@@ -9,6 +9,8 @@ window.startApp = startApp;
 window.restartQuiz = restartQuiz;
 
 async function startApp() {
+    roundCounter = 1; votes = 0; maxVotesThisRound = 16;
+    s_round = "1/32 - FIRST ROUND";
     await api.initQuiz();
     document.getElementById('winners-history-container').style.display = 'none';
     ui.showMainInterface();
