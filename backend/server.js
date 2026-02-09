@@ -34,9 +34,13 @@ async function getAccessToken() {
 }
 
 async function fetchGames() {
-    console.log("Fetching games");
+    console.log("Fetching games with random offset");
     try {
         const token = await getAccessToken();
+
+        // To make fetched games more random
+        const randomOffset = Math.floor(Math.random() * 500);
+
         const response = await axios({
             url: "https://api.igdb.com/v4/games",
             method: 'POST',
@@ -44,16 +48,16 @@ async function fetchGames() {
                 'Client-ID': CLIENT_ID,
                 'Authorization': `Bearer ${token}`,
             },
-            data: "fields name, cover.url, summary, first_release_date, platforms.name, rating, rating_count, screenshots.url; where cover != null & rating_count > 5; limit 32;"
+            data: `fields name, cover.url, summary, first_release_date, platforms.name, rating, rating_count, screenshots.url; where cover != null & rating_count > 50; sort rating_count desc; limit 32; offset ${randomOffset};`
         });
 
-        console.log("Data fetched");
-        // Mapping data
+        console.log(`Data fetched (Offset: ${randomOffset})`);
+
         return response.data.map(game => ({
             id: game.id,
             name: game.name,
             summary: game.summary || "No description.",
-            cover: game.cover.url.replace('t_thumb', 't_720p').replace('//', 'https://'),
+            cover: game.cover ? game.cover.url.replace('t_thumb', 't_720p').replace('//', 'https://') : '',
             release_date: game.first_release_date ? new Date(game.first_release_date * 1000).getFullYear() : 'TBA',
             rating: game.rating ? Math.round(game.rating) : 'N/A',
             rating_count: game.rating_count || 0,
