@@ -10,6 +10,7 @@ window.restartQuiz = restartQuiz;
 
 async function startApp() {
     await api.initQuiz();
+    document.getElementById('winners-history-container').style.display = 'none';
     ui.showMainInterface();
     await loadRound();
 }
@@ -21,7 +22,7 @@ async function loadRound() {
     if (data.winner) return showWinner(data.winner);
 
     if (!document.getElementById('nameA')) {
-        
+
         ui.resetLayout(s_round, `${votes + 1}/${maxVotesThisRound}`);
     }
 
@@ -74,10 +75,42 @@ function showWinner(winner) {
         <div class="winner" style="text-align: center;">
             <h1>🏆 Winner: ${winner.name}!</h1>
             <img src="${winner.cover}" width="300"><br>
-            <button onclick="restartQuiz()">Play Again</button>
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button onclick="restartQuiz()">Play Again</button>
+                <button onclick="goToMainPage()">Back to Main Page</button>
+            </div>
         </div>`;
+
     api.saveWinner(winner);
+
     if (window.confetti) window.confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+}
+
+window.goToMainPage = function () {
+    document.getElementById('main-inteface').style.display = 'none';
+
+    const mainMenu = document.getElementById('main-menu-screen');
+    mainMenu.style.display = 'block';
+
+    document.getElementById('winners-history-container').style.display = 'block';
+
+    loadWinnersHistory();
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+    loadWinnersHistory();
+});
+
+async function loadWinnersHistory() {
+    const winners = await api.getWinners();
+    ui.renderWinnersList(winners, async (id, data) => {
+        try {
+            await api.updateWinnerData(id, data);
+            alert(`Updated ${data.userScore}/100 and other data!`);
+        } catch (err) {
+            console.error("Update failed", err);
+        }
+    });
 }
 
 async function restartQuiz() {

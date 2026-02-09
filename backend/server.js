@@ -67,7 +67,7 @@ async function fetchGames() {
 }
 
 app.get('/api/quiz/init', async (req, res) => {
-    await redisClient.flushAll(); 
+    await redisClient.flushAll();
     const games = await fetchGames();
     if (games.length > 0) {
         // Shuffle the games before saving to Redis, so we get a different order each time
@@ -127,29 +127,59 @@ app.post('/api/quiz/vote', async (req, res) => {
 const statsSchema = new mongoose.Schema({
     gameId: Number,
     name: String,
+    cover: String,
+    played: { type: Boolean, default: false },
+    review: { type: String, default: "" },
+    userScore: {
+        type: Number,
+        default: 50,
+        min: 1,
+        max: 100
+    },
     wins: { type: Number, default: 0 }
 });
 const GameStats = mongoose.model('GameStats', statsSchema);
 
 // Endpoint for updating stats after quiz completion
 app.post('/api/quiz/final-winner', async (req, res) => {
-    const { id, name } = req.body;
+    const { id, name, cover } = req.body;
     try {
         await GameStats.findOneAndUpdate(
             { gameId: id },
-            { $inc: { wins: 1 }, name: name },
-            { upsert: true }
+            {
+                $inc: { wins: 1 },
+                name: name,
+                cover: cover
+            },
+            { upsert: true, new: true }
         );
-        res.json({ message: "Statystyki zaktualizowane!" });
+        res.json({ message: "Winner saved to database!" });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Endpoint for fetching leaderboard
-app.get('/api/quiz/leaderboard', async (req, res) => {
-    const topGames = await GameStats.find().sort({ wins: -1 }).limit(10);
-    res.json(topGames);
+app.get('/api/quiz/winners', async (req, res) => {
+    try {
+        const winners = await GameStats.find().sort({ wins: -1 });
+        res.json(winners);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.patch('/api/quiz/winner/:id', async (req, res) => {
+    const { played, review, userScore } = req.body;
+    try {
+        const updated = await GameStats.findOneAndUpdate(
+            { gameId: req.params.id },
+            { played, review, userScore },
+            { new: true }
+        );
+        res.json(updated);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 const PORT = 5000;

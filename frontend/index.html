@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="./styles/card.css">
     <link rel="stylesheet" href="./styles/main_menu.css">
     <link rel="stylesheet" href="./styles/button.css">
+    <link rel="stylesheet" href="./styles/winner.css">
     <!-- Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,7 +43,11 @@
 
         </div>
         <button class="start-quiz-btn" onclick="startApp()">Start Quiz</button>
-
+        <div id="winners-history-container" style="margin-top: 50px; width: 100%; max-width: 800px;">
+            <h2>Your previously chosen games</h2>
+            <div id="winners-history">
+            </div>
+        </div>
     </div>
 
     <div id="main-inteface" style="display: none;">
@@ -64,7 +69,7 @@
                         <p id="platformsA" class="platforms-text"></p>
 
                         <p id="summaryA"></p>
-                        
+
 
                         <div id="screensA" class="screenshots-container"></div>
                     </div>

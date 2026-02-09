@@ -78,3 +78,49 @@ export function updateRoundDisplay(s_round, votesInfo) {
     if (roundEl) roundEl.innerText = s_round;
     if (votesEl) votesEl.innerText = votesInfo;
 }
+
+export function renderWinnersList(winners, onUpdate) {
+    const container = document.getElementById('winners-history');
+    if (!container) return;
+
+    if (winners.length === 0) {
+        container.innerHTML = "<p>No winners yet. Play the quiz to fill your Hall of Fame!</p>";
+        return;
+    }
+
+    container.innerHTML = winners.map(game => `
+        <div class="winner-history-card" data-id="${game.gameId}">
+            <img src="${game.cover}" alt="${game.name}">
+            <div class="winner-info">
+                <h4>${game.name} (Wins: ${game.wins})</h4>
+                <div class="stats-row">
+                    <label>
+                        <input type="checkbox" class="played-check" ${game.played ? 'checked' : ''}> Played
+                    </label>
+                    <label>
+                        Score: <input type="number" class="score-input" value="${game.userScore || 50}" min="1" max="100">
+                    </label>
+                </div>
+                <textarea class="review-text" placeholder="Your review...">${game.review || ''}</textarea>
+                <button class="save-update-btn">Save Changes</button>
+            </div>
+        </div>
+    `).join('');
+
+    container.querySelectorAll('.save-update-btn').forEach(btn => {
+        btn.onclick = () => {
+            const card = btn.closest('.winner-history-card');
+            const id = card.dataset.id;
+            const played = card.querySelector('.played-check').checked;
+            const review = card.querySelector('.review-text').value;
+
+            let userScore = parseInt(card.querySelector('.score-input').value);
+            if (isNaN(userScore) || userScore < 1) userScore = 1;
+            if (userScore > 100) userScore = 100;
+
+            card.querySelector('.score-input').value = userScore;
+
+            onUpdate(id, { played, review, userScore });
+        };
+    });
+}
