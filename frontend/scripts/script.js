@@ -90,7 +90,7 @@ window.goToMainPage = function () {
     document.getElementById('main-inteface').style.display = 'none';
 
     const mainMenu = document.getElementById('main-menu-screen');
-    mainMenu.style.display = 'block';
+    mainMenu.style.display = '';
 
     document.getElementById('winners-history-container').style.display = 'block';
 
