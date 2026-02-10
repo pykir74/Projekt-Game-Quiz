@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="./styles/style.css">
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <title>Game Picker</title>
     <!-- Scripts -->
     <script type="module" src="./scripts/script.js"></script>
@@ -43,7 +44,7 @@
 
         </div>
         <button class="start-quiz-btn" onclick="startApp()">Start Quiz</button>
-        <div id="winners-history-container" style="margin-top: 50px; width: 100%; max-width: 800px; align-self: center;">
+        <div id="winners-history-container">
             <h2>Your previously chosen games</h2>
             <div id="winners-history">
             </div>
@@ -54,6 +55,9 @@
 
         <div id="quiz">
             <div class="round">
+                <button id="home-btn" onclick="goToMainPage()">
+                    <i data-lucide="house"></i>
+                </button>
                 <h3 id="round"></h3>
                 <p id="maxvotes"></p>
             </div>

@@ -92,7 +92,8 @@ export function renderWinnersList(winners, onUpdate) {
         <div class="winner-history-card" data-id="${game.gameId}">
             <img src="${game.cover}" alt="${game.name}">
             <div class="winner-info">
-                <h4>${game.name} (Wins: ${game.wins})</h4>
+                <h4>${game.name}</h4>
+                <h5>Wins: ${game.wins}</h5>
                 <div class="stats-row">
                     <label>
                         <input type="checkbox" class="played-check" ${game.played ? 'checked' : ''}> Played

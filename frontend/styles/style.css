@@ -16,8 +16,8 @@ header {
     background-color: #7F67CA;
     color: white;
     margin-top: 0;
-    padding: .5em;
-    font-size: 1.2rem;
+    padding: .2em;
+    font-size: 1rem;
     text-align: center;
 }
 
@@ -28,6 +28,11 @@ header {
 .round h3 {
     color: rgb(255, 217, 0);
     text-shadow: #000;
+    font-size: 2.2rem;
+    margin-bottom: 0%;
+}
+.round p {
+    color: #ff5e5e;
 }
 
 .quiz-wrap {
@@ -71,4 +76,6 @@ header {
 }
 h2 { 
     text-align: center;
+    font-size: 2rem;
+    padding-bottom: 10px;
 }

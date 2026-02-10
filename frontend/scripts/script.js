@@ -121,3 +121,5 @@ async function restartQuiz() {
     s_round = "1/32 - FIRST ROUND";
     await loadRound();
 }
+// Initialize Lucide icons
+lucide.createIcons();

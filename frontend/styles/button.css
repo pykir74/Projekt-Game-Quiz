@@ -12,5 +12,17 @@ button {
 
 button:hover {
     background-color: #C6A7D1;
-    transform: scale(1.05);
+    transform: scale(1.10);
+}
+#home-btn {
+    position: absolute;
+    top: 150px;
+    left: 20px;
+    background-color: transparent;
+    color: #D5BDDD;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.2s;
+    transform: scale(1.5rem);
 }
